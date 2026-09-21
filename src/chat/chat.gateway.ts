@@ -1,14 +1,15 @@
 import {ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 import { Socket } from 'socket.io';
+import { Interval } from 'node_modules/@nestjs/schedule/dist/decorators/interval.decorator';
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private activeUsers = new Map<string, { username: string; room: string }>();
 
   private readonly VARIANT_N = 20;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly chatService: ChatService) {}
 
 
   @WebSocketServer() server;
@@ -46,6 +47,40 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       text: `${data.username} has joined!`,
       time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
     });
-}
+
+    const history = await this.chatService.getRoomHistory(data.room);
+    client.emit('history', history);
+  }
+
+  @SubscribeMessage('sendMessage')
+  async handleMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() text: string,
+  ) {
+    const user = this.activeUsers.get(client.id);
+    if (user) {
+      // Сохраняем сообщение через сервис
+      await this.chatService.saveMessage(user.room, user.username, text);
+
+      this.server.to(user.room).emit('message', {
+        username: user.username,
+        text,
+        time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
+      });
+    }
+  }
+
+  @Interval((10 + 20) * 1000) 
+  handleAutomaticMessage() {
+    const currentTime = new Date().toLocaleTimeString('ru-RU');
+    const autoMessageText = `Автоматичне повідомлення від ст. Гарковенко Денис гр. ХХ-ХХ Варіант ${this.VARIANT_N} ${currentTime}`;
+    
+    this.server.emit('message', {
+      username: 'System', 
+      text: autoMessageText,
+      isAutoMessage: true, 
+      time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
+    });
+  }
 }
 
