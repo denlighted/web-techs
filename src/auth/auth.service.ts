@@ -8,7 +8,7 @@ import { JwtPayload } from './interfaces/jwt.interface.js';
 import { type LoginRequest } from "./dto/login.dto.js";
 import { type RegisterRequest } from "./dto/register.dto.js";
 import type { Response, Request } from 'express';
-import { ConflictException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Body,ConflictException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { TokenType } from './enums/token-type.enums.js';
 import ms, { StringValue } from 'ms';
 import { hash, verify } from 'argon2';
@@ -30,7 +30,7 @@ export class AuthService {
         this.COOKIE_DOMAIN = configService.getOrThrow<string>('COOKIE_DOMAIN');
     }
 
-    async register(res: Response, dto: RegisterRequest) {
+    async register(res: Response, @Body() dto: RegisterRequest) {
         const {email, password, firstName, lastName, phoneNumber} = dto;
 
         const role = RoleEnum.USER;
@@ -78,7 +78,7 @@ export class AuthService {
     }
 
     async refresh(req: Request, res: Response) {
-        const refreshToken = req.cookies['refresh_token'];
+        const refreshToken = req.cookies?.refresh_token;
 
         if (!refreshToken) {
             throw new UnauthorizedException('Not valid refreshToken');
