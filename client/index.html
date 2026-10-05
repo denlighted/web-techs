@@ -7,7 +7,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
     body { background-color: #17a2b8; height: 100vh; display: flex; align-items: center; justify-content: center; }
 
-    /* Экран входа */
     #login-screen {
       background: #17a2b8; padding: 20px;
       display: flex; flex-direction: column; gap: 15px; width: 300px;
@@ -20,13 +19,11 @@
       cursor: pointer; font-size: 16px; color: #333; font-weight: bold;
     }
 
-    /* Экран чата */
     #chat-screen {
       display: none; width: 90vw; height: 90vh; background: #fff;
       border: 1px solid #0056b3; display: flex;
     }
     
-    /* Сайдбар */
     .sidebar {
       width: 250px; background-color: #17a2b8; border-right: 1px solid #0056b3;
       display: flex; flex-direction: column;
@@ -35,7 +32,6 @@
     .users-list { background: #fff; flex-grow: 1; padding: 10px; list-style: none; }
     .users-list li { padding: 5px 0; border-bottom: 1px solid #eee; }
 
-    /* Основная зона чата */
     .chat-area {
       flex-grow: 1; display: flex; flex-direction: column; background: #fff;
     }
@@ -48,12 +44,10 @@
     }
     .message-header { font-size: 12px; margin-bottom: 5px; font-weight: bold; }
     
-    /* Цвета сообщений */
     .msg-admin { background-color: #17a2b8; }
     .msg-self { background-color: #28a745; }
     .msg-other, .msg-auto { background-color: #ffc107; color: #333; }
 
-    /* Поле ввода */
     .input-area {
       display: flex; border-top: 1px solid #ccc;
     }
@@ -67,14 +61,12 @@
 </head>
 <body>
 
-  <!-- Экран входа -->
   <div id="login-screen">
     <input type="text" id="username" placeholder="user1" value="user1">
     <input type="text" id="room" placeholder="room1" value="room1">
     <button onclick="joinChat()">Приєднатись</button>
   </div>
 
-  <!-- Экран чата -->
   <div id="chat-screen" style="display: none;">
     <div class="sidebar">
       <div class="info-block">
@@ -83,7 +75,6 @@
       </div>
       <div class="users-block" style="font-size: 12px; color: #666;">Users in the chatroom</div>
       <ul class="users-list" id="users-list">
-        <!-- Список пользователей будет здесь -->
       </ul>
     </div>
     
@@ -96,7 +87,6 @@
     </div>
   </div>
 
-  <!-- Подключаем клиент Socket.IO -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
     let socket;
@@ -109,22 +99,18 @@
 
       if (!currentUsername || !currentRoom) return alert('Enter username and room');
 
-      // Скрываем логин, показываем чат
       document.getElementById('login-screen').style.display = 'none';
       const chatScreen = document.getElementById('chat-screen');
       chatScreen.style.display = 'flex';
       
-      // Сбрасываем flex-настройки, которые могли переопределиться из-за инлайн-стиля
       document.body.style.display = 'block'; 
       chatScreen.style.margin = '20px auto';
 
       document.getElementById('display-room').innerText = currentRoom;
       document.getElementById('display-user').innerText = currentUsername;
 
-      // Добавляем себя в список (упрощенно, так как бекенд пока не шлет полный список)
       updateUsersList([currentUsername]);
 
-      // Подключаемся к бекенду
       socket = io('http://localhost:3000');
 
       socket.emit('joinRoom', { username: currentUsername, room: currentRoom });
@@ -156,7 +142,6 @@
       const msgDiv = document.createElement('div');
       msgDiv.classList.add('message');
 
-      // Определение цвета в зависимости от отправителя
       if (msg.isAutoMessage) {
         msgDiv.classList.add('msg-auto');
       } else if (msg.username === 'Admin') {
@@ -167,7 +152,6 @@
         msgDiv.classList.add('msg-other');
       }
 
-      // Форматирование времени (если пришло с бекенда, иначе текущее)
       const timeStr = msg.time || new Date(msg.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
       msgDiv.innerHTML = `
