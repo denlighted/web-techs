@@ -1,5 +1,6 @@
 import asyncio
 import os
+from aiohttp import web
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -59,8 +60,7 @@ async def back_to_menu(message: types.Message, state: FSMContext):
 
 @dp.message(F.text == "Student")
 async def student_info(message: types.Message):
-    # Вкажіть ваше прізвище та групу
-    await message.answer("ст. Гарковенко Д.В. гр. ІП-33 Варіант 20", reply_markup=back_kb)
+    await message.answer("ст. Сергієнко О.І. гр. ІС-02", reply_markup=back_kb)
 
 
 @dp.message(F.text == "IT-technologies")
@@ -74,7 +74,7 @@ async def tech_info(message: types.Message):
 @dp.message(F.text == "Contacts")
 async def contacts_info(message: types.Message):
     await message.answer(
-        "Контакти тел. 09990960205, e-mail: dgarkovenko10@gmail.com",
+        "Контакти тел. 050-55-55-55, e-mail: student@gmail.com",
         reply_markup=back_kb,
     )
 
@@ -95,21 +95,49 @@ async def process_ai_request(message: types.Message, state: FSMContext):
         await message.answer("Головне меню:", reply_markup=main_kb)
         return
 
-    # Запит до Gemini
     try:
-        response = client.models.generate_content(
+        # Вызов в отдельном потоке, чтобы не блокировать event loop
+        response = await asyncio.to_thread(
+            client.models.generate_content,
             model="gemini-2.5-flash",
             contents=message.text,
         )
-        await message.answer(response.text, reply_markup=main_kb)
+        full_text = response.text or "Отримано порожню відповідь від моделі."
+
+        chunk_size = 4000
+        chunks = [
+            full_text[i : i + chunk_size]
+            for i in range(0, len(full_text), chunk_size)
+        ]
+
+        for index, chunk in enumerate(chunks):
+            markup = main_kb if index == len(chunks) - 1 else None
+            await message.answer(chunk, reply_markup=markup)
+
     except Exception as e:
         await message.answer(f"Помилка Gemini: {e}", reply_markup=main_kb)
     finally:
         await state.clear()
 
 
+async def handle_ping(request):
+    return web.Response(text="Bot is running!")
+
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", handle_ping)
+    app.router.add_get("/healthz", handle_ping)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.getenv("PORT", 10000))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    print(f"Web server started on port {port}")
+
+
 async def main():
-    print("Бот запущений...")
+    await start_web_server()
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
