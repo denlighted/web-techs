@@ -149,7 +149,7 @@ export class AuthService {
     }
 
     private async generateTokens(sub: string, email: string, role: RoleEnum) {
-        const payLoad: JwtPayload = {sub, email, role};
+        const payLoad: JwtPayload = {sub, email, role, name:"Harkovenko Denys IP-33, Var-20"};
 
         const accessToken = this.jwtService.sign(payLoad, {
             expiresIn: ms(this.JWT_ACCESS_TOKEN_TTL as StringValue) / 1000,
@@ -182,5 +182,19 @@ export class AuthService {
         });
     }
 
+    async changeUsersRole(userId: string, newRole: RoleEnum) {
+        const user = await this.prismaService.user.findUnique({where: {id: userId}});
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        const updatedUser = await this.prismaService.user.update({
+            where: {id: userId},
+            data: {role: newRole},
+        });
+
+        return updatedUser;
+    }
 
 }
