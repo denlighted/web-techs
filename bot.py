@@ -60,7 +60,7 @@ async def back_to_menu(message: types.Message, state: FSMContext):
 
 @dp.message(F.text == "Student")
 async def student_info(message: types.Message):
-    await message.answer("ст. Сергієнко О.І. гр. ІС-02", reply_markup=back_kb)
+    await message.answer("ст. Гарковенко Д.В. гр. ІП-33", reply_markup=back_kb)
 
 
 @dp.message(F.text == "IT-technologies")
@@ -74,7 +74,7 @@ async def tech_info(message: types.Message):
 @dp.message(F.text == "Contacts")
 async def contacts_info(message: types.Message):
     await message.answer(
-        "Контакти тел. 050-55-55-55, e-mail: student@gmail.com",
+        "Контакти тел. 099-096-0205, e-mail: dgarkovenko10@gmail.com",
         reply_markup=back_kb,
     )
 
