@@ -59,7 +59,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const user = this.activeUsers.get(client.id);
     if (user) {
-      // Сохраняем сообщение через сервис
       await this.chatService.saveMessage(user.room, user.username, text);
 
       this.server.to(user.room).emit('message', {
@@ -73,7 +72,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @Interval((10 + 20) * 1000) 
   handleAutomaticMessage() {
     const currentTime = new Date().toLocaleTimeString('ru-RU');
-    const autoMessageText = `Автоматичне повідомлення від ст. Гарковенко Денис гр. ХХ-ХХ Варіант ${this.VARIANT_N} ${currentTime}`;
+    const autoMessageText = `Автоматичне повідомлення від ст. Гарковенко Денис гр. ІП-33 Варіант ${this.VARIANT_N} ${currentTime}`;
     
     this.server.emit('message', {
       username: 'System', 
