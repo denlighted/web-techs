@@ -1,7 +1,7 @@
 import {ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 import { Socket } from 'socket.io';
-import { Interval } from 'node_modules/@nestjs/schedule/dist/decorators/interval.decorator';
+import { Interval } from '@nestjs/schedule';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -83,4 +83,3 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 }
-
